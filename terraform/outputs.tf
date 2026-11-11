@@ -1,3 +1,11 @@
+output "rangauto_msk" {
+  value = {
+    id      = restapi_object.rangauto_msk.id
+    ip      = try(jsondecode(restapi_object.rangauto_msk.api_response).app.ip, null)
+    domains = try(jsondecode(restapi_object.rangauto_msk.api_response).app.domains, null)
+  }
+}
+
 output "rangauto" {
   value = {
     id      = restapi_object.rangauto.id
