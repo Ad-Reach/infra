@@ -1,0 +1,67 @@
+name: Terraform
+
+# PR — fmt/validate/plan, план выводится в сводку запуска.
+# Пуш в main — apply. Ручной запуск — apply из выбранной ветки.
+on:
+  pull_request:
+    paths: [terraform/**, .github/workflows/terraform.yml]
+  push:
+    branches: [main]
+    paths: [terraform/**, .github/workflows/terraform.yml]
+  workflow_dispatch:
+
+concurrency:
+  group: terraform
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  TF_IN_AUTOMATION: "1"
+  TF_INPUT: "0"
+  AWS_ACCESS_KEY_ID: ${{ secrets.TF_STATE_ACCESS_KEY }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.TF_STATE_SECRET_KEY }}
+  TF_VAR_twc_token: ${{ secrets.TWC_TOKEN }}
+  TF_VAR_telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TF_VAR_telegram_chat_ids: ${{ secrets.TELEGRAM_CHAT_IDS }}
+  TF_VAR_telegram_admin_ids: ${{ secrets.TELEGRAM_ADMIN_IDS }}
+  TF_VAR_smtp_user: ${{ secrets.SMTP_USER }}
+  TF_VAR_smtp_pass: ${{ secrets.SMTP_PASS }}
+  TF_VAR_lead_email_to: ${{ vars.LEAD_EMAIL_TO }}
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.3
+          terraform_wrapper: false
+
+      - run: terraform fmt -check -recursive
+      - run: terraform init
+      - run: terraform validate
+
+      - name: Plan
+        run: |
+          terraform plan -no-color -out=tfplan | tee plan.txt
+          {
+            echo '### Terraform plan'
+            echo '```'
+            grep -E '^(  #|Plan:|No changes)' plan.txt || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Apply
+        if: github.event_name != 'pull_request'
+        run: terraform apply -no-color tfplan
+
+      - name: Outputs
+        if: github.event_name != 'pull_request'
+        run: terraform output -no-color | tee -a "$GITHUB_STEP_SUMMARY"

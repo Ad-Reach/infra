@@ -1,0 +1,125 @@
+locals {
+  location = "nl-1" # Амстердам
+
+  # Подключённые к App Platform аккаунты GitHub и репозитории
+  # (GET /api/v1/vcs-provider и /api/v1/vcs-provider/{id}).
+  github_ad_reach      = "5a55e9c9-5a59-40ad-aa18-27f605ba6aae"
+  github_dmitryhudrich = "407f9a8f-b26b-45e0-bb42-fd3e394b05ee"
+  repo_cars            = "9a1ec970-eb46-493d-903b-a057a0ebaa8b"
+  repo_potolki         = "e09e2d6f-02d2-40c0-8484-87b7da00e635"
+
+  preset_backend_1gb = 1631 # 1 vCPU / 1 ГБ / 15 ГБ NVMe, nl-1
+  preset_frontend    = 2803 # статический сайт, nl-1
+
+  cars_envs = { for k, v in {
+    TELEGRAM_BOT_TOKEN = var.telegram_bot_token
+    TELEGRAM_CHAT_IDS  = var.telegram_chat_ids
+    TELEGRAM_ADMIN_IDS = var.telegram_admin_ids
+    SMTP_HOST          = "smtp.mail.ru"
+    SMTP_PORT          = "465"
+    SMTP_USER          = var.smtp_user
+    SMTP_PASS          = var.smtp_pass
+    LEAD_EMAIL_TO      = var.lead_email_to
+  } : k => v if v != "" }
+}
+
+# Коммит для первого деплоя (обязателен при создании). Дальше App Platform
+# сам деплоит каждый пуш в ветку (is_auto_deploy).
+data "http" "cars_head" {
+  url             = "https://api.timeweb.cloud/api/v1/vcs-provider/${local.github_ad_reach}/repository/${local.repo_cars}/branch?name=${var.cars_branch}"
+  request_headers = { Authorization = "Bearer ${var.twc_token}" }
+}
+
+data "http" "potolki_head" {
+  url             = "https://api.timeweb.cloud/api/v1/vcs-provider/${local.github_dmitryhudrich}/repository/${local.repo_potolki}/branch?name=${var.potolki_branch}"
+  request_headers = { Authorization = "Bearer ${var.twc_token}" }
+}
+
+resource "terraform_data" "first_commit" {
+  input = {
+    cars    = jsondecode(data.http.cars_head.response_body).commits[0].sha
+    potolki = jsondecode(data.http.potolki_head.response_body).commits[0].sha
+  }
+  lifecycle {
+    ignore_changes = [input]
+  }
+}
+
+# rangauto.ru — Next.js (Dockerfile в репозитории), сборка и запуск в App Platform.
+resource "restapi_object" "rangauto" {
+  path          = "/api/v1/apps"
+  create_path   = "/api/v2/apps"
+  read_path     = "/api/v1/apps/{id}"
+  update_path   = "/api/v1/apps/{id}"
+  destroy_path  = "/api/v1/apps/{id}"
+  update_method = "PATCH"
+
+  data = jsonencode({
+    name           = "rangauto.ru"
+    comment        = "Ad-Reach cars, managed by Terraform"
+    type           = "backend"
+    language       = "docker"
+    framework      = "docker"
+    provider_id    = local.github_ad_reach
+    repository_id  = local.repo_cars
+    branch_name    = var.cars_branch
+    commit_sha     = terraform_data.first_commit.output.cars
+    is_auto_deploy = true
+    build_cmd      = ""
+    run_cmd        = ""
+    preset_id      = local.preset_backend_1gb
+    project_id     = var.project_id
+    health_check   = "/"
+    envs           = local.cars_envs
+  })
+
+  update_data = jsonencode({
+    name           = "rangauto.ru"
+    branch_name    = var.cars_branch
+    is_auto_deploy = true
+    preset_id      = local.preset_backend_1gb
+    envs           = local.cars_envs
+  })
+
+  ignore_all_server_changes = true
+}
+
+# centro-plus.ru — статический сайт. Собирает GitHub Actions в репозитории potolki
+# и публикует готовые файлы в ветку `site`, App Platform только раздаёт их
+# (в сборочном окружении статических сайтов App Platform нет Python).
+resource "restapi_object" "potolki" {
+  path          = "/api/v1/apps"
+  create_path   = "/api/v2/apps"
+  read_path     = "/api/v1/apps/{id}"
+  update_path   = "/api/v1/apps/{id}"
+  destroy_path  = "/api/v1/apps/{id}"
+  update_method = "PATCH"
+  force_new     = ["type", "language", "framework", "provider_id", "repository_id"]
+
+  data = jsonencode({
+    name           = "centro-plus.ru"
+    comment        = "potolki, managed by Terraform"
+    type           = "frontend"
+    language       = "javascript"
+    framework      = "static-nobuild"
+    provider_id    = local.github_dmitryhudrich
+    repository_id  = local.repo_potolki
+    branch_name    = var.potolki_branch
+    commit_sha     = terraform_data.first_commit.output.potolki
+    is_auto_deploy = true
+    build_cmd      = ""
+    index_dir      = "/"
+    preset_id      = local.preset_frontend
+    project_id     = var.project_id
+    envs           = {}
+  })
+
+  update_data = jsonencode({
+    name           = "centro-plus.ru"
+    branch_name    = var.potolki_branch
+    is_auto_deploy = true
+    index_dir      = "/"
+  })
+
+  ignore_all_server_changes = true
+}
