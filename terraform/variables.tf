@@ -62,3 +62,10 @@ variable "s3_secret_key" {
   sensitive = true
   default   = ""
 }
+
+variable "telegram_proxy" {
+  description = "Прокси до api.telegram.org (http://user:pass@host:port или socks5://...). Из Москвы Telegram API недоступен"
+  type        = string
+  sensitive   = true
+  default     = ""
+}

@@ -20,6 +20,7 @@ locals {
   cars_envs = { for k, v in {
     TELEGRAM_BOT_TOKEN = var.telegram_bot_token
     TELEGRAM_CHAT_IDS  = var.telegram_chat_ids
+    TELEGRAM_PROXY     = var.telegram_proxy
     SMTP_HOST          = "smtp.timeweb.ru"
     SMTP_PORT          = "465"
     SMTP_USER          = local.smtp_user

@@ -28,6 +28,7 @@
 | `TF_STATE_SECRET_KEY` | secret key S3 (там же) |
 | `TELEGRAM_BOT_TOKEN` | токен бота заявок |
 | `TELEGRAM_CHAT_IDS` | необязательно: чаты, куда слать заявки всегда |
+| `TELEGRAM_PROXY` | прокси до Telegram API: `http://user:pass@host:port` или `socks5://user:pass@host:port` (из Москвы Telegram API недоступен) |
 
 Куда дублируются заявки: `rangauto@mail.ru`, `dimahudric@gmail.com` (`terraform/apps.tf`, `lead_email_to`).
 Переменная GitHub (Variables) `LEAD_EMAIL_TO`, если задана, заменяет этот список.
