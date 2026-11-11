@@ -25,7 +25,7 @@ resource "restapi_object" "mail_noreply" {
   id_attribute  = "mailbox/mailbox"
 
   data = jsonencode({
-    mailbox  = "no-reply"
+    login    = "no-reply"
     password = random_password.smtp.result
     comment  = "SMTP for rangauto.ru leads (Terraform)"
   })
