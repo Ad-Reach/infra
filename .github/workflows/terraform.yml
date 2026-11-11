@@ -26,8 +26,6 @@ env:
   TF_VAR_telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
   TF_VAR_telegram_chat_ids: ${{ secrets.TELEGRAM_CHAT_IDS }}
   TF_VAR_telegram_admin_ids: ${{ secrets.TELEGRAM_ADMIN_IDS }}
-  TF_VAR_smtp_user: ${{ secrets.SMTP_USER }}
-  TF_VAR_smtp_pass: ${{ secrets.SMTP_PASS }}
   TF_VAR_lead_email_to: ${{ vars.LEAD_EMAIL_TO }}
 
 jobs:

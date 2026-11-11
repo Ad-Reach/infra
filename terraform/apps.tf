@@ -15,10 +15,11 @@ locals {
     TELEGRAM_BOT_TOKEN = var.telegram_bot_token
     TELEGRAM_CHAT_IDS  = var.telegram_chat_ids
     TELEGRAM_ADMIN_IDS = var.telegram_admin_ids
-    SMTP_HOST          = "smtp.mail.ru"
+    SMTP_HOST          = "smtp.timeweb.ru"
     SMTP_PORT          = "465"
-    SMTP_USER          = var.smtp_user
-    SMTP_PASS          = var.smtp_pass
+    SMTP_USER          = local.smtp_user
+    SMTP_PASS          = random_password.smtp.result
+    SMTP_FROM          = local.smtp_user
     LEAD_EMAIL_TO      = var.lead_email_to
   } : k => v if v != "" }
 }
@@ -82,6 +83,8 @@ resource "restapi_object" "rangauto" {
   })
 
   ignore_all_server_changes = true
+
+  depends_on = [restapi_object.mail_noreply]
 }
 
 # centro-plus.ru — статический сайт. Собирает GitHub Actions в репозитории potolki

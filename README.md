@@ -29,13 +29,18 @@
 | `TELEGRAM_BOT_TOKEN` | токен бота заявок |
 | `TELEGRAM_CHAT_IDS` | ID чатов для заявок через запятую |
 | `TELEGRAM_ADMIN_IDS` | Telegram ID администраторов бота |
-| `SMTP_USER` | ящик mail.ru, с которого уходят письма |
-| `SMTP_PASS` | «пароль для внешних приложений» mail.ru |
 
 Переменная (Variables): `LEAD_EMAIL_TO` — куда дублировать заявки (необязательно,
 по умолчанию email из `src/data/site.ts` в cars).
 
-SMTP-порты 465/587 для backend-приложения App Platform открывает поддержка Таймвеба по запросу (укажите ID приложения).
+## Почта для заявок
+
+Письма уходят с `no-reply@rangauto.ru` (почта Таймвеба, `smtp.timeweb.ru:465`).
+Ящик и случайный пароль создаёт Terraform (`terraform/mail.tf`) и сам передаёт их приложению,
+руками пароль задавать не нужно. Домен `rangauto.ru` добавлен на аккаунт Таймвеба, NS остаются на reg.ru.
+
+Исходящие SMTP-порты 465/587 для backend-приложения App Platform открывает поддержка Таймвеба
+по запросу (ID приложения rangauto.ru — 287225).
 
 ## DNS (reg.ru, вручную)
 
@@ -49,6 +54,8 @@ IP приложений: `terraform output` или панель → App Platform
 | `www.rangauto.ru` | `A` → тот же IP |
 | `centro-plus.ru` | `A` → IP приложения centro-plus.ru |
 | `www.centro-plus.ru` | `A` → тот же IP |
+
+| `rangauto.ru` | `TXT` → `v=spf1 include:_spf.timeweb.ru ~all` (SPF, чтобы письма с no-reply@ не попадали в спам) |
 
 `catalog.rangauto.ru` живёт на отдельном сервере, его запись не трогать.
 

@@ -38,18 +38,6 @@ variable "telegram_admin_ids" {
   default     = ""
 }
 
-variable "smtp_user" {
-  type      = string
-  sensitive = true
-  default   = ""
-}
-
-variable "smtp_pass" {
-  type      = string
-  sensitive = true
-  default   = ""
-}
-
 variable "lead_email_to" {
   description = "Куда дублировать заявки (через запятую). Пусто — email из src/data/site.ts"
   type        = string
