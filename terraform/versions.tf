@@ -4,7 +4,7 @@ terraform {
   required_providers {
     restapi = {
       source  = "Mastercard/restapi"
-      version = "~> 3.0"
+      version = "2.0.1" # v3.0.0: "inconsistent result after apply" при PATCH
     }
     http = {
       source  = "hashicorp/http"
@@ -36,11 +36,11 @@ terraform {
 # управляются через REST API Таймвеба (https://timeweb.cloud/api-docs).
 provider "restapi" {
   uri                   = "https://api.timeweb.cloud"
-  bearer_token          = var.twc_token
   write_returns_object  = true
   create_returns_object = true
   id_attribute          = "app/id"
   headers = {
-    "Content-Type" = "application/json"
+    "Content-Type"  = "application/json"
+    "Authorization" = "Bearer ${var.twc_token}"
   }
 }
