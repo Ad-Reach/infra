@@ -27,11 +27,16 @@
 | `TF_STATE_ACCESS_KEY` | access key S3 (панель → Хранилище S3 → `rangauto-tfstate`) |
 | `TF_STATE_SECRET_KEY` | secret key S3 (там же) |
 | `TELEGRAM_BOT_TOKEN` | токен бота заявок |
-| `TELEGRAM_CHAT_IDS` | ID чатов для заявок через запятую |
-| `TELEGRAM_ADMIN_IDS` | Telegram ID администраторов бота |
+| `TELEGRAM_CHAT_IDS` | необязательно: чаты, куда слать заявки всегда |
 
 Куда дублируются заявки: `rangauto@mail.ru`, `dimahudric@gmail.com` (`terraform/apps.tf`, `lead_email_to`).
 Переменная GitHub (Variables) `LEAD_EMAIL_TO`, если задана, заменяет этот список.
+
+## Заявки в Telegram
+
+Заявки приходят во все группы, куда добавлен бот: группа подключается сама при добавлении бота
+(или командой `/connect` в группе), отключается при удалении бота или командой `/disconnect`.
+Список групп хранится в S3: бакет `rangauto-tfstate`, файл `app/telegram-chats.json`.
 
 ## Почта для заявок
 

@@ -31,13 +31,6 @@ variable "telegram_chat_ids" {
   default     = ""
 }
 
-variable "telegram_admin_ids" {
-  description = "Telegram ID администраторов бота через запятую"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
 variable "lead_email_to" {
   description = "Куда дублировать заявки (через запятую). Пусто — email из src/data/site.ts"
   type        = string
@@ -55,4 +48,17 @@ variable "potolki_enabled" {
 variable "potolki_branch" {
   type    = string
   default = "main"
+}
+
+# Ключи S3-пользователя аккаунта (те же, что для состояния Terraform)
+variable "s3_access_key" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
+variable "s3_secret_key" {
+  type      = string
+  sensitive = true
+  default   = ""
 }

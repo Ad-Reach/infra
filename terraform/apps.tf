@@ -16,19 +16,20 @@ locals {
   # Куда дублировать заявки. Переменная LEAD_EMAIL_TO в GitHub, если задана, заменяет этот список.
   lead_email_to = var.lead_email_to != "" ? var.lead_email_to : "rangauto@mail.ru,dimahudric@gmail.com"
 
-  # Куда слать заявки в Telegram (ID групп отрицательные). Секрет TELEGRAM_CHAT_IDS, если задан, заменяет этот список.
-  telegram_chat_ids = var.telegram_chat_ids != "" ? var.telegram_chat_ids : "-5555462827"
-
   cars_envs = { for k, v in {
     TELEGRAM_BOT_TOKEN = var.telegram_bot_token
-    TELEGRAM_CHAT_IDS  = local.telegram_chat_ids
-    TELEGRAM_ADMIN_IDS = var.telegram_admin_ids
+    TELEGRAM_CHAT_IDS  = var.telegram_chat_ids
     SMTP_HOST          = "smtp.timeweb.ru"
     SMTP_PORT          = "465"
     SMTP_USER          = local.smtp_user
     SMTP_PASS          = random_password.smtp.result
     SMTP_FROM          = local.smtp_user
     LEAD_EMAIL_TO      = local.lead_email_to
+    # Список Telegram-групп бота хранится в S3 (бакет состояния Terraform, папка app/)
+    CHATS_S3_BUCKET     = "rangauto-tfstate"
+    CHATS_S3_KEY        = "app/telegram-chats.json"
+    CHATS_S3_ACCESS_KEY = var.s3_access_key
+    CHATS_S3_SECRET_KEY = var.s3_secret_key
   } : k => v if v != "" }
 }
 
