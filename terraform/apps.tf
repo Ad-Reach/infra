@@ -8,9 +8,8 @@ locals {
   repo_cars            = "9a1ec970-eb46-493d-903b-a057a0ebaa8b"
   repo_potolki         = "e09e2d6f-02d2-40c0-8484-87b7da00e635"
 
-  # Фактически 2733 (1 vCPU / 2 ГБ / 30 ГБ, 810 ₽): уменьшить тариф существующего приложения нельзя.
-  # 2731 (1 ГБ, 510 ₽) — только при пересоздании приложения (новый IP).
-  preset_backend_1gb = 2733
+  preset_backend_1gb = 2731 # 1 vCPU / 1 ГБ / 15 ГБ NVMe, ru-3 (Москва), 510 ₽/мес
+  preset_backend_2gb = 2733 # 1 vCPU / 2 ГБ / 30 ГБ, 810 ₽ — старое приложение, удаляется после переключения доменов
   preset_frontend    = 2803 # статический сайт, nl-1
 
   potolki_build = "(command -v apk >/dev/null && apk add --no-cache python3 || (apt-get update -qq && apt-get install -y -qq python3)) && python3 build.py"
@@ -62,6 +61,48 @@ resource "terraform_data" "first_commit" {
 
 # rangauto.ru — Next.js (Dockerfile в репозитории), сборка и запуск в App Platform.
 # rangauto.ru в Москве (ru-3) — основное приложение.
+resource "restapi_object" "rangauto" {
+  path          = "/api/v1/apps"
+  create_path   = "/api/v2/apps"
+  read_path     = "/api/v1/apps/{id}"
+  update_path   = "/api/v1/apps/{id}"
+  destroy_path  = "/api/v1/apps/{id}"
+  update_method = "PATCH"
+
+  data = jsonencode({
+    name           = "rangauto.ru"
+    comment        = "Ad-Reach cars, managed by Terraform"
+    type           = "backend"
+    language       = "docker"
+    framework      = "docker"
+    provider_id    = local.github_ad_reach
+    repository_id  = local.repo_cars
+    branch_name    = var.cars_branch
+    commit_sha     = terraform_data.first_commit.output.cars
+    is_auto_deploy = true
+    build_cmd      = ""
+    run_cmd        = ""
+    preset_id      = local.preset_backend_1gb
+    project_id     = var.project_id
+    health_check   = "/"
+    envs           = local.cars_envs
+  })
+
+  update_data = jsonencode({
+    name           = "rangauto.ru"
+    branch_name    = var.cars_branch
+    is_auto_deploy = true
+    preset_id      = local.preset_backend_1gb
+    envs           = local.cars_envs
+  })
+
+  ignore_all_server_changes = true
+
+  depends_on = [restapi_object.mail_noreply]
+}
+
+# Старое московское приложение на 2 ГБ (по ошибке, уменьшить тариф нельзя).
+# Удаляется, когда домены переедут на restapi_object.rangauto.
 resource "restapi_object" "rangauto_msk" {
   path          = "/api/v1/apps"
   create_path   = "/api/v2/apps"
@@ -83,17 +124,17 @@ resource "restapi_object" "rangauto_msk" {
     is_auto_deploy = true
     build_cmd      = ""
     run_cmd        = ""
-    preset_id      = local.preset_backend_1gb
+    preset_id      = local.preset_backend_2gb
     project_id     = var.project_id
     health_check   = "/"
     envs           = local.cars_envs
   })
 
   update_data = jsonencode({
-    name           = "rangauto.ru (Москва)"
+    name           = "rangauto.ru (выводится)"
     branch_name    = var.cars_branch
     is_auto_deploy = true
-    preset_id      = local.preset_backend_1gb
+    preset_id      = local.preset_backend_2gb
     envs           = local.cars_envs
   })
 
