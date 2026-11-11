@@ -8,7 +8,9 @@ locals {
   repo_cars            = "9a1ec970-eb46-493d-903b-a057a0ebaa8b"
   repo_potolki         = "e09e2d6f-02d2-40c0-8484-87b7da00e635"
 
-  preset_backend_1gb = 2731 # 1 vCPU / 1 ГБ / 15 ГБ NVMe, ru-3 (Москва), 510 ₽/мес
+  # Фактически 2733 (1 vCPU / 2 ГБ / 30 ГБ, 810 ₽): уменьшить тариф существующего приложения нельзя.
+  # 2731 (1 ГБ, 510 ₽) — только при пересоздании приложения (новый IP).
+  preset_backend_1gb = 2733
   preset_frontend    = 2803 # статический сайт, nl-1
 
   potolki_build = "(command -v apk >/dev/null && apk add --no-cache python3 || (apt-get update -qq && apt-get install -y -qq python3)) && python3 build.py"
