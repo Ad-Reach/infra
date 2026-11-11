@@ -11,6 +11,8 @@ locals {
   preset_backend_1gb = 1631 # 1 vCPU / 1 ГБ / 15 ГБ NVMe, nl-1
   preset_frontend    = 2803 # статический сайт, nl-1
 
+  potolki_build = "(command -v apk >/dev/null && apk add --no-cache python3 || (apt-get update -qq && apt-get install -y -qq python3)) && python3 build.py"
+
   cars_envs = { for k, v in {
     TELEGRAM_BOT_TOKEN = var.telegram_bot_token
     TELEGRAM_CHAT_IDS  = var.telegram_chat_ids
@@ -32,6 +34,8 @@ data "http" "cars_head" {
 }
 
 data "http" "potolki_head" {
+  count = var.potolki_enabled ? 1 : 0
+
   url             = "https://api.timeweb.cloud/api/v1/vcs-provider/${local.github_dmitryhudrich}/repository/${local.repo_potolki}/branch?name=${var.potolki_branch}"
   request_headers = { Authorization = "Bearer ${var.twc_token}" }
 }
@@ -39,7 +43,7 @@ data "http" "potolki_head" {
 resource "terraform_data" "first_commit" {
   input = {
     cars    = jsondecode(data.http.cars_head.response_body).commits[0].sha
-    potolki = jsondecode(data.http.potolki_head.response_body).commits[0].sha
+    potolki = var.potolki_enabled ? jsondecode(data.http.potolki_head[0].response_body).commits[0].sha : null
   }
   lifecycle {
     ignore_changes = [input]
@@ -87,31 +91,31 @@ resource "restapi_object" "rangauto" {
   depends_on = [restapi_object.mail_noreply]
 }
 
-# centro-plus.ru — статический сайт. Собирает GitHub Actions в репозитории potolki
-# и публикует готовые файлы в ветку `site`, App Platform только раздаёт их
-# (в сборочном окружении статических сайтов App Platform нет Python).
+# centro-plus.ru — статический сайт (python3 build.py → dist/). Python в сборочном
+# окружении App Platform нет, поэтому build_cmd сначала ставит его.
 resource "restapi_object" "potolki" {
+  count = var.potolki_enabled ? 1 : 0
+
   path          = "/api/v1/apps"
   create_path   = "/api/v2/apps"
   read_path     = "/api/v1/apps/{id}"
   update_path   = "/api/v1/apps/{id}"
   destroy_path  = "/api/v1/apps/{id}"
   update_method = "PATCH"
-  force_new     = ["type", "language", "framework", "provider_id", "repository_id"]
 
   data = jsonencode({
     name           = "centro-plus.ru"
     comment        = "potolki, managed by Terraform"
     type           = "frontend"
     language       = "javascript"
-    framework      = "static-nobuild"
+    framework      = "another"
     provider_id    = local.github_dmitryhudrich
     repository_id  = local.repo_potolki
     branch_name    = var.potolki_branch
     commit_sha     = terraform_data.first_commit.output.potolki
     is_auto_deploy = true
-    build_cmd      = ""
-    index_dir      = "/"
+    build_cmd      = local.potolki_build
+    index_dir      = "/dist"
     preset_id      = local.preset_frontend
     project_id     = var.project_id
     envs           = {}
@@ -121,7 +125,8 @@ resource "restapi_object" "potolki" {
     name           = "centro-plus.ru"
     branch_name    = var.potolki_branch
     is_auto_deploy = true
-    index_dir      = "/"
+    build_cmd      = local.potolki_build
+    index_dir      = "/dist"
   })
 
   ignore_all_server_changes = true

@@ -5,7 +5,7 @@
 | Сайт | Репозиторий | Где работает | Деплой |
 |---|---|---|---|
 | rangauto.ru | `Ad-Reach/cars` | App Platform, backend (Dockerfile, Next.js), 1 vCPU / 1 ГБ | пуш в `production` → App Platform пересобирает сам |
-| centro-plus.ru | `DmitryHudrich/potolki` | App Platform, статический сайт | пуш в `main` → CI собирает `dist/` в ветку `site` → App Platform выкладывает |
+| centro-plus.ru | `DmitryHudrich/potolki` | App Platform, статический сайт — **пока выключено** (`potolki_enabled = false`) | пуш в `main` → App Platform собирает (`python3 build.py`) и выкладывает |
 
 Серверов (VDS) нет, CMS нет: контент сайтов хранится в их репозиториях.
 

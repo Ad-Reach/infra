@@ -7,9 +7,9 @@ output "rangauto" {
 }
 
 output "potolki" {
-  value = {
-    id      = restapi_object.potolki.id
-    ip      = try(jsondecode(restapi_object.potolki.api_response).app.ip, null)
-    domains = try(jsondecode(restapi_object.potolki.api_response).app.domains, null)
-  }
+  value = var.potolki_enabled ? {
+    id      = restapi_object.potolki[0].id
+    ip      = try(jsondecode(restapi_object.potolki[0].api_response).app.ip, null)
+    domains = try(jsondecode(restapi_object.potolki[0].api_response).app.domains, null)
+  } : null
 }

@@ -46,8 +46,13 @@ variable "lead_email_to" {
 
 # --- centro-plus.ru (DmitryHudrich/potolki) ---
 
+variable "potolki_enabled" {
+  description = "Создавать ли приложение centro-plus.ru (пока выключено)"
+  type        = bool
+  default     = false
+}
+
 variable "potolki_branch" {
-  description = "Ветка с собранным сайтом (её публикует CI репозитория potolki)"
-  type        = string
-  default     = "site"
+  type    = string
+  default = "main"
 }
