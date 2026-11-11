@@ -13,6 +13,9 @@ locals {
 
   potolki_build = "(command -v apk >/dev/null && apk add --no-cache python3 || (apt-get update -qq && apt-get install -y -qq python3)) && python3 build.py"
 
+  # Куда дублировать заявки. Переменная LEAD_EMAIL_TO в GitHub, если задана, заменяет этот список.
+  lead_email_to = var.lead_email_to != "" ? var.lead_email_to : "rangauto@mail.ru,dimahudric@gmail.com"
+
   cars_envs = { for k, v in {
     TELEGRAM_BOT_TOKEN = var.telegram_bot_token
     TELEGRAM_CHAT_IDS  = var.telegram_chat_ids
@@ -22,7 +25,7 @@ locals {
     SMTP_USER          = local.smtp_user
     SMTP_PASS          = random_password.smtp.result
     SMTP_FROM          = local.smtp_user
-    LEAD_EMAIL_TO      = var.lead_email_to
+    LEAD_EMAIL_TO      = local.lead_email_to
   } : k => v if v != "" }
 }
 

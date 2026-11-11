@@ -30,8 +30,8 @@
 | `TELEGRAM_CHAT_IDS` | ID чатов для заявок через запятую |
 | `TELEGRAM_ADMIN_IDS` | Telegram ID администраторов бота |
 
-Переменная (Variables): `LEAD_EMAIL_TO` — куда дублировать заявки (необязательно,
-по умолчанию email из `src/data/site.ts` в cars).
+Куда дублируются заявки: `rangauto@mail.ru`, `dimahudric@gmail.com` (`terraform/apps.tf`, `lead_email_to`).
+Переменная GitHub (Variables) `LEAD_EMAIL_TO`, если задана, заменяет этот список.
 
 ## Почта для заявок
 
