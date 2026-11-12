@@ -26,6 +26,8 @@ locals {
     SMTP_PASS          = random_password.smtp.result
     SMTP_FROM          = local.smtp_user
     LEAD_EMAIL_TO      = local.lead_email_to
+    # тестовый доступ к каталогу новых авто: https://rangauto.ru/new?preview=<ключ> (src/proxy.ts в cars)
+    NEW_CARS_PREVIEW_KEY = "42a929dd10b0a624"
     # Список Telegram-групп бота хранится в S3 (бакет состояния Terraform, папка app/)
     CHATS_S3_BUCKET     = "rangauto-tfstate"
     CHATS_S3_KEY        = "app/telegram-chats.json"
