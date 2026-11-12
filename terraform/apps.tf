@@ -3,13 +3,10 @@ locals {
 
   # Подключённые к App Platform аккаунты GitHub и репозитории
   # (GET /api/v1/vcs-provider и /api/v1/vcs-provider/{id}).
-  github_ad_reach      = "5a55e9c9-5a59-40ad-aa18-27f605ba6aae"
-  github_dmitryhudrich = "407f9a8f-b26b-45e0-bb42-fd3e394b05ee"
-  repo_cars            = "9a1ec970-eb46-493d-903b-a057a0ebaa8b"
-  repo_potolki         = "e09e2d6f-02d2-40c0-8484-87b7da00e635"
+  github_ad_reach = "5a55e9c9-5a59-40ad-aa18-27f605ba6aae"
+  repo_cars       = "9a1ec970-eb46-493d-903b-a057a0ebaa8b"
 
   preset_backend_1gb = 2731 # 1 vCPU / 1 ГБ / 15 ГБ NVMe, ru-3 (Москва), 510 ₽/мес
-  preset_frontend    = 2803 # статический сайт, nl-1
 
   potolki_build = "(command -v apk >/dev/null && apk add --no-cache python3 || (apt-get update -qq && apt-get install -y -qq python3)) && python3 build.py"
 
@@ -43,11 +40,68 @@ data "http" "cars_head" {
   request_headers = { Authorization = "Bearer ${var.twc_token}" }
 }
 
+# centro-plus.ru: ID репозитория Ad-Reach/potolki в App Platform и тариф статического
+# сайта в Москве (ru-3) берутся из API — зарубежные IP App Platform из России блокируются.
+data "http" "potolki_repos" {
+  count = var.potolki_enabled ? 1 : 0
+
+  url             = "https://api.timeweb.cloud/api/v1/vcs-provider/${local.github_ad_reach}"
+  request_headers = { Authorization = "Bearer ${var.twc_token}" }
+
+  lifecycle {
+    postcondition {
+      condition     = self.status_code == 200
+      error_message = "Не удалось получить список репозиториев GitHub Ad-Reach в App Platform: ${self.response_body}"
+    }
+  }
+}
+
+data "http" "app_presets" {
+  count = var.potolki_enabled ? 1 : 0
+
+  url             = "https://api.timeweb.cloud/api/v1/presets/apps"
+  request_headers = { Authorization = "Bearer ${var.twc_token}" }
+
+  lifecycle {
+    postcondition {
+      condition     = self.status_code == 200
+      error_message = "Не удалось получить тарифы App Platform: ${self.response_body}"
+    }
+  }
+}
+
+locals {
+  potolki_repo_matches = var.potolki_enabled ? [
+    for r in jsondecode(data.http.potolki_repos[0].response_body).repositories : r.id
+    if lower(r.full_name) == lower(var.potolki_repo)
+  ] : []
+  repo_potolki = try(local.potolki_repo_matches[0], null)
+
+  # самый дешёвый тариф статического сайта в нужной локации
+  potolki_presets = var.potolki_enabled ? [
+    for p in jsondecode(data.http.app_presets[0].response_body).frontend_presets : p
+    if p.location == var.potolki_location
+  ] : []
+  potolki_preset_min_price = length(local.potolki_presets) > 0 ? min([for p in local.potolki_presets : p.price]...) : null
+  preset_frontend          = try([for p in local.potolki_presets : p.id if p.price == local.potolki_preset_min_price][0], null)
+}
+
 data "http" "potolki_head" {
   count = var.potolki_enabled ? 1 : 0
 
-  url             = "https://api.timeweb.cloud/api/v1/vcs-provider/${local.github_dmitryhudrich}/repository/${local.repo_potolki}/branch?name=${var.potolki_branch}"
+  url             = "https://api.timeweb.cloud/api/v1/vcs-provider/${local.github_ad_reach}/repository/${local.repo_potolki}/branch?name=${var.potolki_branch}"
   request_headers = { Authorization = "Bearer ${var.twc_token}" }
+
+  lifecycle {
+    precondition {
+      condition     = local.repo_potolki != null
+      error_message = "Репозиторий ${var.potolki_repo} не виден App Platform: в GitHub дайте приложению Timeweb Cloud доступ к нему (Settings → GitHub Apps у организации Ad-Reach)."
+    }
+    precondition {
+      condition     = local.preset_frontend != null
+      error_message = "В локации ${var.potolki_location} нет тарифа статического сайта App Platform."
+    }
+  }
 }
 
 locals {
@@ -104,7 +158,7 @@ resource "restapi_object" "rangauto" {
   depends_on = [restapi_object.mail_noreply]
 }
 
-# centro-plus.ru — статический сайт (python3 build.py → dist/). Python в сборочном
+# centro-plus.ru — статический сайт в Москве (python3 build.py → dist/). Python в сборочном
 # окружении App Platform нет, поэтому build_cmd сначала ставит его.
 resource "restapi_object" "potolki" {
   count = var.potolki_enabled ? 1 : 0
@@ -118,11 +172,11 @@ resource "restapi_object" "potolki" {
 
   data = jsonencode({
     name           = "centro-plus.ru"
-    comment        = "potolki, managed by Terraform"
+    comment        = "Ad-Reach potolki, managed by Terraform"
     type           = "frontend"
     language       = "javascript"
     framework      = "another"
-    provider_id    = local.github_dmitryhudrich
+    provider_id    = local.github_ad_reach
     repository_id  = local.repo_potolki
     branch_name    = var.potolki_branch
     commit_sha     = local.head_potolki

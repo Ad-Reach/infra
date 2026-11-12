@@ -37,12 +37,23 @@ variable "lead_email_to" {
   default     = ""
 }
 
-# --- centro-plus.ru (DmitryHudrich/potolki) ---
+# --- centro-plus.ru (Ad-Reach/potolki) ---
 
 variable "potolki_enabled" {
-  description = "Создавать ли приложение centro-plus.ru (пока выключено)"
+  description = "Создавать ли приложение centro-plus.ru"
   type        = bool
-  default     = false
+  default     = true
+}
+
+variable "potolki_repo" {
+  type    = string
+  default = "Ad-Reach/potolki"
+}
+
+variable "potolki_location" {
+  description = "Локация App Platform для centro-plus.ru"
+  type        = string
+  default     = "ru-3"
 }
 
 variable "potolki_branch" {
