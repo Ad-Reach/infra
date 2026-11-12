@@ -48,14 +48,10 @@ data "http" "potolki_head" {
   request_headers = { Authorization = "Bearer ${var.twc_token}" }
 }
 
-resource "terraform_data" "first_commit" {
-  input = {
-    cars    = jsondecode(data.http.cars_head.response_body).commits[0].sha
-    potolki = var.potolki_enabled ? jsondecode(data.http.potolki_head[0].response_body).commits[0].sha : null
-  }
-  lifecycle {
-    ignore_changes = [input]
-  }
+locals {
+  # последний коммит ветки на момент создания приложения; дальше деплоит App Platform по пушу
+  head_cars    = jsondecode(data.http.cars_head.response_body).commits[0].sha
+  head_potolki = var.potolki_enabled ? jsondecode(data.http.potolki_head[0].response_body).commits[0].sha : null
 }
 
 # rangauto.ru — Next.js (Dockerfile в репозитории), сборка и запуск в App Platform.
@@ -77,7 +73,7 @@ resource "restapi_object" "rangauto" {
     provider_id    = local.github_ad_reach
     repository_id  = local.repo_cars
     branch_name    = var.cars_branch
-    commit_sha     = terraform_data.first_commit.output.cars
+    commit_sha     = local.head_cars
     is_auto_deploy = true
     build_cmd      = ""
     run_cmd        = ""
@@ -96,6 +92,12 @@ resource "restapi_object" "rangauto" {
   })
 
   ignore_all_server_changes = true
+
+  # data нужна только при создании (в ней коммит, который меняется с каждым пушем);
+  # изменения настроек применяются через update_data
+  lifecycle {
+    ignore_changes = [data]
+  }
 
   depends_on = [restapi_object.mail_noreply]
 }
@@ -121,7 +123,7 @@ resource "restapi_object" "potolki" {
     provider_id    = local.github_dmitryhudrich
     repository_id  = local.repo_potolki
     branch_name    = var.potolki_branch
-    commit_sha     = terraform_data.first_commit.output.potolki
+    commit_sha     = local.head_potolki
     is_auto_deploy = true
     build_cmd      = local.potolki_build
     index_dir      = "/dist"
