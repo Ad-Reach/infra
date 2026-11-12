@@ -1,11 +1,11 @@
 # infra
 
-Инфраструктура сайтов в Timeweb Cloud (Амстердам, `nl-1`), описанная в Terraform.
+Инфраструктура сайтов в Timeweb Cloud (Москва, `ru-3`: зарубежные IP App Platform из России блокируются), описанная в Terraform.
 
 | Сайт | Репозиторий | Где работает | Деплой |
 |---|---|---|---|
 | rangauto.ru | `Ad-Reach/cars` | App Platform, backend (Dockerfile, Next.js), 1 vCPU / 1 ГБ | пуш в `production` → App Platform пересобирает сам |
-| centro-plus.ru | `DmitryHudrich/potolki` | App Platform, статический сайт — **пока выключено** (`potolki_enabled = false`) | пуш в `main` → App Platform собирает (`python3 build.py`) и выкладывает |
+| centro-plus.ru | `Ad-Reach/potolki` | App Platform, статический сайт, Москва (`ru-3`) | пуш в `main` → App Platform собирает (`python3 build.py`) и выкладывает |
 
 Серверов (VDS) нет, CMS нет: контент сайтов хранится в их репозиториях.
 
@@ -76,5 +76,5 @@ terraform plan
 ## Стоимость (тарифы на ноябрь 2026)
 
 - rangauto.ru: 510 ₽/мес (1 vCPU 3.3 ГГц, 1 ГБ RAM, 15 ГБ NVMe).
-- centro-plus.ru: тариф статического сайта, оплата по запросам.
+- centro-plus.ru: самый дешёвый тариф статического сайта в `ru-3` (Terraform выбирает его через API, ID — в `terraform output potolki`).
 - S3 для состояния: 1 ₽/мес.
