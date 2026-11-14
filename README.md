@@ -5,6 +5,7 @@
 | Сайт | Репозиторий | Где работает | Деплой |
 |---|---|---|---|
 | rangauto.ru | `Ad-Reach/cars` | App Platform, backend (Dockerfile, Next.js), 1 vCPU / 1 ГБ | пуш в `production` → App Platform пересобирает сам |
+| test.rangauto.ru | `Ad-Reach/cars` (ветка `main`) | App Platform, Москва, тестовая копия | пуш в `main` → App Platform пересобирает сам |
 | centro-plus.ru | `Ad-Reach/potolki` | App Platform, статический сайт, Москва (`ru-3`) | пуш в `main` → App Platform собирает (`python3 build.py`) и выкладывает |
 
 Серверов (VDS) нет, CMS нет: контент сайтов хранится в их репозиториях.

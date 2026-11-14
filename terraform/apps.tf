@@ -86,6 +86,11 @@ locals {
   preset_frontend          = try([for p in local.potolki_presets : p.id if p.price == local.potolki_preset_min_price][0], null)
 }
 
+data "http" "cars_main_head" {
+  url             = "https://api.timeweb.cloud/api/v1/vcs-provider/${local.github_ad_reach}/repository/${local.repo_cars}/branch?name=main"
+  request_headers = { Authorization = "Bearer ${var.twc_token}" }
+}
+
 data "http" "potolki_head" {
   count = var.potolki_enabled ? 1 : 0
 
@@ -106,8 +111,9 @@ data "http" "potolki_head" {
 
 locals {
   # последний коммит ветки на момент создания приложения; дальше деплоит App Platform по пушу
-  head_cars    = jsondecode(data.http.cars_head.response_body).commits[0].sha
-  head_potolki = var.potolki_enabled ? jsondecode(data.http.potolki_head[0].response_body).commits[0].sha : null
+  head_cars      = jsondecode(data.http.cars_head.response_body).commits[0].sha
+  head_cars_main = jsondecode(data.http.cars_main_head.response_body).commits[0].sha
+  head_potolki   = var.potolki_enabled ? jsondecode(data.http.potolki_head[0].response_body).commits[0].sha : null
 }
 
 # rangauto.ru — Next.js (Dockerfile в репозитории), сборка и запуск в App Platform.
@@ -142,6 +148,54 @@ resource "restapi_object" "rangauto" {
   update_data = jsonencode({
     name           = "rangauto.ru"
     branch_name    = var.cars_branch
+    is_auto_deploy = true
+    preset_id      = local.preset_backend_1gb
+    envs           = local.cars_envs
+  })
+
+  ignore_all_server_changes = true
+
+  # data нужна только при создании (в ней коммит, который меняется с каждым пушем);
+  # изменения настроек применяются через update_data
+  lifecycle {
+    ignore_changes = [data]
+  }
+
+  depends_on = [restapi_object.mail_noreply]
+}
+
+# test.rangauto.ru — тестовая копия сайта (Москва), собирается из ветки main:
+# каждый пуш в main сначала попадает сюда, после зелёного CI — в production (rangauto.ru).
+resource "restapi_object" "rangauto_test" {
+  path          = "/api/v1/apps"
+  create_path   = "/api/v2/apps"
+  read_path     = "/api/v1/apps/{id}"
+  update_path   = "/api/v1/apps/{id}"
+  destroy_path  = "/api/v1/apps/{id}"
+  update_method = "PATCH"
+
+  data = jsonencode({
+    name           = "test.rangauto.ru"
+    comment        = "Ad-Reach cars test (branch main), managed by Terraform"
+    type           = "backend"
+    language       = "docker"
+    framework      = "docker"
+    provider_id    = local.github_ad_reach
+    repository_id  = local.repo_cars
+    branch_name    = "main"
+    commit_sha     = local.head_cars_main
+    is_auto_deploy = true
+    build_cmd      = ""
+    run_cmd        = ""
+    preset_id      = local.preset_backend_1gb
+    project_id     = var.project_id
+    health_check   = "/"
+    envs           = local.cars_envs
+  })
+
+  update_data = jsonencode({
+    name           = "test.rangauto.ru"
+    branch_name    = "main"
     is_auto_deploy = true
     preset_id      = local.preset_backend_1gb
     envs           = local.cars_envs

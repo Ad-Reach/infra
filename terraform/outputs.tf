@@ -30,3 +30,11 @@ output "potolki_deploys" {
     }
   ], data.http.potolki_deploys[0].response_body) : null
 }
+
+output "rangauto_test" {
+  value = {
+    id      = restapi_object.rangauto_test.id
+    ip      = try(jsondecode(restapi_object.rangauto_test.api_response).app.ip, null)
+    domains = try(jsondecode(restapi_object.rangauto_test.api_response).app.domains, null)
+  }
+}
