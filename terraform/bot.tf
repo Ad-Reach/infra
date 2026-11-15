@@ -147,3 +147,18 @@ output "bot_last_deploy_log" {
     try(data.http.bot_last_deploy_log[0].response_body, null)
   )
 }
+
+# Логи работающего бота — только служебные строки (каталог, запуск, HTTP-ошибки), без данных заявок.
+data "http" "bot_app_logs" {
+  count = var.bot_enabled ? 1 : 0
+
+  url             = "https://api.timeweb.cloud/api/v1/apps/${restapi_object.bot[0].id}/logs"
+  request_headers = { Authorization = "Bearer ${var.twc_token}" }
+}
+
+output "bot_app_log" {
+  value = try(join("\n", [
+    for l in jsondecode(data.http.bot_app_logs[0].response_body).app_logs : try(l.message, tostring(l))
+    if length(regexall("\\[(catalog|start|http|widget)\\]|HTTP :|запущен|Error", try(l.message, tostring(l)))) > 0
+  ]), try(substr(data.http.bot_app_logs[0].response_body, 0, 300), null))
+}
