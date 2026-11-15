@@ -5,6 +5,7 @@
 | Сайт | Репозиторий | Где работает | Деплой |
 |---|---|---|---|
 | rangauto.ru | `Ad-Reach/cars` (ветка `main`) | App Platform, Москва, ID 289117 | пуш в `main` → App Platform пересобирает сам |
+| Telegram-бот заявок | `Ad-Reach/cars`, папка `bot/` (ветка `main`) | App Platform, Амстердам (`nl-1`), самый дешёвый backend-тариф (`terraform/bot.tf`) | пуш в `main` → App Platform собирает `bot/Dockerfile` |
 | centro-plus.ru | `Ad-Reach/potolki` | App Platform, статический сайт, Москва (`ru-3`) | пуш в `main` → App Platform собирает (`python3 build.py`) и выкладывает |
 
 Серверов (VDS) нет, CMS нет: контент сайтов хранится в их репозиториях.
@@ -28,6 +29,8 @@
 | `TF_STATE_SECRET_KEY` | secret key S3 (там же) |
 | `TELEGRAM_BOT_TOKEN` | токен бота заявок |
 | `TELEGRAM_CHAT_IDS` | необязательно: чаты, куда слать заявки всегда |
+| `BOT_TELEGRAM_TOKEN` | токен Telegram-бота заявок (отдельный бот, не бот сайта) |
+| `BOT_LEAD_CHAT_IDS` | необязательно: чаты менеджеров для заявок из бота, через запятую (id — команда `/id` в чате) |
 | `TELEGRAM_PROXY` | прокси до Telegram API: `http://user:pass@host:port` или `socks5://user:pass@host:port` (из Москвы Telegram API недоступен) |
 
 Куда дублируются заявки: `rangauto@mail.ru`, `dimahudric@gmail.com` (`terraform/apps.tf`, `lead_email_to`).
@@ -46,7 +49,8 @@
 руками пароль задавать не нужно. Домен `rangauto.ru` добавлен на аккаунт Таймвеба, NS остаются на reg.ru.
 
 Исходящие SMTP-порты 465/587 для backend-приложения App Platform открывает поддержка Таймвеба
-по запросу (ID приложения rangauto.ru — 287225).
+по запросу (ID приложения rangauto.ru — 287225). Бот заявок шлёт письма с того же ящика —
+для его приложения порты тоже открывает поддержка (ID — `terraform output bot`).
 
 ## DNS (reg.ru, вручную)
 
