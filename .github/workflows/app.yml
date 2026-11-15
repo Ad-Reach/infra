@@ -1,0 +1,64 @@
+name: App Platform
+
+# Ручные действия с приложением App Platform: статус, логи, перезапуск, передеплой.
+# Actions → App Platform → Run workflow. Ответы API фильтруются: переменные окружения
+# (в них пароли) в лог не попадают, строки с данными заявок из логов бота вырезаются.
+on:
+  workflow_dispatch:
+    inputs:
+      app_id:
+        description: "ID приложения (бот — 289399, сайт — 289117)"
+        required: true
+        default: "289399"
+      action:
+        description: "Что сделать"
+        type: choice
+        options: [status, logs, reboot, redeploy]
+        default: status
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TWC: https://api.timeweb.cloud/api/v1
+      AUTH: "Authorization: Bearer ${{ secrets.TWC_TOKEN }}"
+      APP: ${{ inputs.app_id }}
+    steps:
+      - name: Проверить ID
+        run: '[[ "$APP" =~ ^[0-9]+$ ]] || { echo "app_id — только цифры"; exit 1; }'
+
+      - name: Статус
+        run: |
+          set -o pipefail
+          curl -fsS -H "$AUTH" "$TWC/apps/$APP" | jq '.app | {id, name, status, location, ip, branch_name, commit_sha, domains: [.domains[]? | {fqdn, is_technical}]}'
+          curl -fsS -H "$AUTH" "$TWC/apps/$APP/deploys?limit=5" | jq '[.deploys[] | {id, status, commit_sha, started_at, ended_at}]'
+
+      - name: Логи приложения
+        if: inputs.action == 'logs' || inputs.action == 'status'
+        run: |
+          set -o pipefail
+          curl -fsS -H "$AUTH" "$TWC/apps/$APP/logs" | jq -r '(.app_logs // .logs // [])[]? | if type == "object" then (.message // .text // tostring) else . end' \
+            | grep -v '^\[lead\] 20' | tail -n 150
+
+      - name: Логи последнего деплоя
+        if: inputs.action == 'logs'
+        run: |
+          set -o pipefail
+          id=$(curl -fsS -H "$AUTH" "$TWC/apps/$APP/deploys?limit=1" | jq -r '.deploys[0].id')
+          curl -fsS -H "$AUTH" "$TWC/apps/$APP/deploy/$id/logs" | jq -r '(.deploy_logs // .logs // [])[]? | if type == "object" then (.message // .text // tostring) else . end' | tail -n 150
+
+      - name: Перезапуск
+        if: inputs.action == 'reboot'
+        run: curl -fsS -X PATCH -H "$AUTH" "$TWC/apps/$APP/action/reboot" | jq '{response_id}'
+
+      - name: Передеплой последнего коммита ветки
+        if: inputs.action == 'redeploy'
+        run: |
+          set -o pipefail
+          sha=$(curl -fsS -H "$AUTH" "$TWC/apps/$APP" | jq -r '.app.commit_sha')
+          echo "commit: $sha"
+          curl -fsS -X POST -H "$AUTH" -H "Content-Type: application/json" -d "{\"commit_sha\":\"$sha\"}" "$TWC/apps/$APP/deploy" | jq '{deploy: (.deploy.id // .id), status: (.deploy.status // null)}'
