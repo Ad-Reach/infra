@@ -29,6 +29,8 @@ env:
   TF_VAR_lead_email_to: ${{ vars.LEAD_EMAIL_TO }}
   TF_VAR_s3_access_key: ${{ secrets.TF_STATE_ACCESS_KEY }}
   TF_VAR_s3_secret_key: ${{ secrets.TF_STATE_SECRET_KEY }}
+  TF_VAR_bot_telegram_token: ${{ secrets.BOT_TELEGRAM_TOKEN }}
+  TF_VAR_bot_lead_chat_ids: ${{ secrets.BOT_LEAD_CHAT_IDS }}
 
 jobs:
   terraform:
@@ -50,6 +52,7 @@ jobs:
 
       - name: Plan
         run: |
+          set -o pipefail
           terraform plan -no-color -out=tfplan | tee plan.txt
           {
             echo '### Terraform plan'
@@ -64,4 +67,6 @@ jobs:
 
       - name: Outputs
         if: github.event_name != 'pull_request'
-        run: terraform output -no-color | tee -a "$GITHUB_STEP_SUMMARY"
+        run: |
+          set -o pipefail
+          terraform output -no-color | tee -a "$GITHUB_STEP_SUMMARY"

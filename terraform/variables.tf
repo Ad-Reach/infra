@@ -80,3 +80,37 @@ variable "telegram_proxy" {
   sensitive   = true
   default     = ""
 }
+
+# --- Telegram-бот заявок (Ad-Reach/cars, папка bot/) ---
+
+variable "bot_enabled" {
+  description = "Создавать ли приложение бота"
+  type        = bool
+  default     = true
+}
+
+variable "bot_branch" {
+  description = "Ветка Ad-Reach/cars, из которой собирается бот"
+  type        = string
+  default     = "main"
+}
+
+variable "bot_location" {
+  description = "Локация App Platform для бота (Амстердам: Telegram API доступен без прокси)"
+  type        = string
+  default     = "nl-1"
+}
+
+variable "bot_telegram_token" {
+  description = "Токен бота заявок (@BotFather) — отдельный от бота сайта"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "bot_lead_chat_ids" {
+  description = "Чаты менеджеров для заявок из бота, через запятую (узнать id — /id в чате)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
