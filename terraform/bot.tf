@@ -156,9 +156,15 @@ data "http" "bot_app_logs" {
   request_headers = { Authorization = "Bearer ${var.twc_token}" }
 }
 
+locals {
+  bot_app_logs_body = try(jsondecode(data.http.bot_app_logs[0].response_body), {})
+  bot_app_logs_list = try(local.bot_app_logs_body.app_logs, local.bot_app_logs_body.logs, [])
+}
+
 output "bot_app_log" {
-  value = try(join("\n", [
-    for l in jsondecode(data.http.bot_app_logs[0].response_body).app_logs : try(l.message, tostring(l))
-    if length(regexall("\\[(catalog|start|http|widget)\\]|HTTP :|запущен|Error", try(l.message, tostring(l)))) > 0
-  ]), try(substr(data.http.bot_app_logs[0].response_body, 0, 300), null))
+  # формат записей не документирован: строка или объект; строки заявок ([lead]) вырезаются
+  value = length(local.bot_app_logs_list) > 0 ? join("\n", [
+    for l in local.bot_app_logs_list : try(tostring(l), jsonencode(l))
+    if length(regexall("\\[lead\\]", try(tostring(l), jsonencode(l)))) == 0
+  ]) : "keys: ${jsonencode(keys(local.bot_app_logs_body))}"
 }
