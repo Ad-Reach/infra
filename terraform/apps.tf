@@ -116,56 +116,8 @@ locals {
   head_potolki   = var.potolki_enabled ? jsondecode(data.http.potolki_head[0].response_body).commits[0].sha : null
 }
 
-# rangauto.ru — Next.js (Dockerfile в репозитории), сборка и запуск в App Platform.
-# rangauto.ru в Москве (ru-3) — основное приложение.
-resource "restapi_object" "rangauto" {
-  path          = "/api/v1/apps"
-  create_path   = "/api/v2/apps"
-  read_path     = "/api/v1/apps/{id}"
-  update_path   = "/api/v1/apps/{id}"
-  destroy_path  = "/api/v1/apps/{id}"
-  update_method = "PATCH"
-
-  data = jsonencode({
-    name           = "rangauto.ru"
-    comment        = "Ad-Reach cars, managed by Terraform"
-    type           = "backend"
-    language       = "docker"
-    framework      = "docker"
-    provider_id    = local.github_ad_reach
-    repository_id  = local.repo_cars
-    branch_name    = var.cars_branch
-    commit_sha     = local.head_cars
-    is_auto_deploy = true
-    build_cmd      = ""
-    run_cmd        = ""
-    preset_id      = local.preset_backend_1gb
-    project_id     = var.project_id
-    health_check   = "/"
-    envs           = local.cars_envs
-  })
-
-  update_data = jsonencode({
-    name           = "rangauto.ru"
-    branch_name    = var.cars_branch
-    is_auto_deploy = true
-    preset_id      = local.preset_backend_1gb
-    envs           = local.cars_envs
-  })
-
-  ignore_all_server_changes = true
-
-  # data нужна только при создании (в ней коммит, который меняется с каждым пушем);
-  # изменения настроек применяются через update_data
-  lifecycle {
-    ignore_changes = [data]
-  }
-
-  depends_on = [restapi_object.mail_noreply]
-}
-
-# test.rangauto.ru — тестовая копия сайта (Москва), собирается из ветки main:
-# каждый пуш в main сначала попадает сюда, после зелёного CI — в production (rangauto.ru).
+# rangauto.ru и www.rangauto.ru (Москва, ID 289117). Создавалось как test.rangauto.ru,
+# сейчас на нём боевой сайт; собирается из ветки main. Старое приложение 287445 удалено.
 resource "restapi_object" "rangauto_test" {
   path          = "/api/v1/apps"
   create_path   = "/api/v2/apps"
