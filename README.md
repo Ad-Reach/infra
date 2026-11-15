@@ -62,6 +62,7 @@ IP приложений: `terraform output` или панель → App Platform
 |---|---|
 | `rangauto.ru` | `A` → IP приложения rangauto.ru |
 | `www.rangauto.ru` | `A` → тот же IP |
+| `tg.rangauto.ru` | `A` → `201.34.145.102` (приложение бота 289399, Mini App) |
 | `centro-plus.ru` | `A` → IP приложения centro-plus.ru |
 | `www.centro-plus.ru` | `A` → тот же IP |
 | `rangauto.ru` | `TXT` → `v=spf1 include:_spf.timeweb.ru ~all` (SPF, чтобы письма с no-reply@ не попадали в спам) |

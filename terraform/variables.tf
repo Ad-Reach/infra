@@ -118,5 +118,5 @@ variable "bot_lead_chat_ids" {
 variable "bot_public_url" {
   description = "Публичный HTTPS-адрес приложения бота (технический домен App Platform) — адрес Mini App"
   type        = string
-  default     = "https://ad-reach-cars-c9fc.twc1.net"
+  default     = "https://tg.rangauto.ru"
 }
