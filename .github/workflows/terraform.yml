@@ -52,6 +52,7 @@ jobs:
 
       - name: Plan
         run: |
+          set -o pipefail
           terraform plan -no-color -out=tfplan | tee plan.txt
           {
             echo '### Terraform plan'
@@ -66,4 +67,6 @@ jobs:
 
       - name: Outputs
         if: github.event_name != 'pull_request'
-        run: terraform output -no-color | tee -a "$GITHUB_STEP_SUMMARY"
+        run: |
+          set -o pipefail
+          terraform output -no-color | tee -a "$GITHUB_STEP_SUMMARY"
