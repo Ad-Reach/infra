@@ -36,6 +36,8 @@ locals {
   bot_envs = { for k, v in {
     TELEGRAM_BOT_TOKEN = var.bot_telegram_token
     LEAD_CHAT_IDS      = var.bot_lead_chat_ids
+    # HTTPS-адрес приложения: на нём Mini App (кнопка меню бота)
+    PUBLIC_URL = var.bot_public_url
     # почта — тот же ящик no-reply@rangauto.ru, что у сайта (mail.tf)
     SMTP_HOST     = "smtp.timeweb.ru"
     SMTP_PORT     = "465"
@@ -58,7 +60,7 @@ resource "restapi_object" "bot" {
 
   data = jsonencode({
     name             = "bot.rangauto.ru"
-    comment          = "Ad-Reach cars bot/ (Telegram lead bot), managed by Terraform"
+    comment          = "Ad-Reach cars, папка bot (Telegram lead bot), managed by Terraform"
     type             = "backend"
     language         = "docker"
     framework        = "docker"
