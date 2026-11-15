@@ -123,3 +123,27 @@ output "bot" {
     ], data.http.bot_deploys[0].response_body)
   } : null
 }
+
+# Лог последнего деплоя бота (сборка и запуск) — чтобы видеть причину ошибки без панели.
+# Переменных окружения в нём нет. Последние строки — в выводе terraform output bot_last_deploy_log.
+locals {
+  bot_last_deploy_id = try(jsondecode(data.http.bot_deploys[0].response_body).deploys[0].id, "")
+}
+
+data "http" "bot_last_deploy_log" {
+  count = var.bot_enabled && local.bot_last_deploy_id != "" ? 1 : 0
+
+  url             = "https://api.timeweb.cloud/api/v1/apps/${restapi_object.bot[0].id}/deploy/${local.bot_last_deploy_id}/logs"
+  request_headers = { Authorization = "Bearer ${var.twc_token}" }
+}
+
+output "bot_last_deploy_log" {
+  value = try(
+    join("\n", slice(
+      [for l in jsondecode(data.http.bot_last_deploy_log[0].response_body).logs : try(l.message, tostring(l))],
+      max(0, length(jsondecode(data.http.bot_last_deploy_log[0].response_body).logs) - 80),
+      length(jsondecode(data.http.bot_last_deploy_log[0].response_body).logs)
+    )),
+    try(data.http.bot_last_deploy_log[0].response_body, null)
+  )
+}
