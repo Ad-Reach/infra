@@ -114,3 +114,9 @@ variable "bot_lead_chat_ids" {
   sensitive   = true
   default     = ""
 }
+
+variable "bot_public_url" {
+  description = "Публичный HTTPS-адрес приложения бота (технический домен App Platform) — адрес Mini App"
+  type        = string
+  default     = ""
+}
