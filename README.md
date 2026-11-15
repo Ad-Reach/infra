@@ -6,7 +6,7 @@
 |---|---|---|---|
 | rangauto.ru | `Ad-Reach/cars` (ветка `main`) | App Platform, Москва, ID 289117 | пуш в `main` → App Platform пересобирает сам |
 | Telegram-бот заявок | `Ad-Reach/cars`, папка `bot/` (ветка `main`) | App Platform, Амстердам (`nl-1`), самый дешёвый backend-тариф (`terraform/bot.tf`) | пуш в `main` → App Platform собирает `bot/Dockerfile` |
-| centro-plus.ru | `Ad-Reach/potolki` (ветка `deploy`) | App Platform, статический сайт, Москва (`ru-3`) | пуш в `main` → GitHub собирает сайт в ветку `deploy` → App Platform выкладывает готовый `dist/` |
+| centro-plus.ru | `Ad-Reach/potolki` | App Platform, статический сайт, Москва (`ru-3`) | пуш в `main` → App Platform выкладывает готовый `dist/` из репозитория (без сборки) |
 
 Серверов (VDS) нет, CMS нет: контент сайтов хранится в их репозиториях.
 

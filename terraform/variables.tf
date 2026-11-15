@@ -57,9 +57,9 @@ variable "potolki_location" {
 }
 
 variable "potolki_branch" {
-  description = "Ветка с готовым сайтом: её собирает workflow Deploy в Ad-Reach/potolki из main"
+  description = "Ветка сайта. Таймвеб не меняет ветку у созданного приложения через PATCH — только при создании"
   type        = string
-  default     = "deploy"
+  default     = "main"
 }
 
 # Ключи S3-пользователя аккаунта (те же, что для состояния Terraform)

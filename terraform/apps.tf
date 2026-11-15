@@ -8,8 +8,8 @@ locals {
 
   preset_backend_1gb = 2731 # 1 vCPU / 1 ГБ / 15 ГБ NVMe, ru-3 (Москва), 510 ₽/мес
 
-  # Сайт собирает GitHub (workflow Deploy в Ad-Reach/potolki) и кладёт готовый dist/ в ветку deploy;
-  # если dist/ уже есть — ничего не делаем (выкладка за секунды). Иначе (сборка из main) — собираем сами.
+  # Готовый dist/ хранится в Ad-Reach/potolki (CI проверяет, что он совпадает с исходниками):
+  # если он есть — ничего не собираем и не ставим Python. Иначе — собираем как раньше.
   potolki_build = "test -f dist/index.html || ((command -v apk >/dev/null && apk add --no-cache python3 || (apt-get update -qq && apt-get install -y -qq python3)) && python3 build.py)"
 
   # Куда дублировать заявки. Переменная LEAD_EMAIL_TO в GitHub, если задана, заменяет этот список.
