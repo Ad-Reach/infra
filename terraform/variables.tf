@@ -57,8 +57,9 @@ variable "potolki_location" {
 }
 
 variable "potolki_branch" {
-  type    = string
-  default = "main"
+  description = "Ветка с готовым сайтом: её собирает workflow Deploy в Ad-Reach/potolki из main"
+  type        = string
+  default     = "deploy"
 }
 
 # Ключи S3-пользователя аккаунта (те же, что для состояния Terraform)
