@@ -130,7 +130,7 @@ resource "restapi_object" "rangauto_test" {
   update_method = "PATCH"
 
   data = jsonencode({
-    name           = "test.rangauto.ru"
+    name           = "rangauto.ru"
     comment        = "Ad-Reach cars test (branch main), managed by Terraform"
     type           = "backend"
     language       = "docker"
@@ -149,7 +149,7 @@ resource "restapi_object" "rangauto_test" {
   })
 
   update_data = jsonencode({
-    name           = "test.rangauto.ru"
+    name           = "rangauto.ru"
     branch_name    = "main"
     is_auto_deploy = true
     preset_id      = local.preset_backend_1gb
