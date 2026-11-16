@@ -129,7 +129,8 @@ locals {
 }
 
 data "http" "bot_last_deploy_log" {
-  count = var.bot_enabled && local.bot_last_deploy_id != "" ? 1 : 0
+  # count не может зависеть от ответа API (он известен только после apply) — только от флага
+  count = var.bot_enabled ? 1 : 0
 
   url             = "https://api.timeweb.cloud/api/v1/apps/${restapi_object.bot[0].id}/deploy/${local.bot_last_deploy_id}/logs"
   request_headers = { Authorization = "Bearer ${var.twc_token}" }
