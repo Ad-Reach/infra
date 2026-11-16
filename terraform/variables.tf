@@ -121,3 +121,14 @@ variable "bot_public_url" {
   type        = string
   default     = "https://tg.rangauto.ru"
 }
+
+variable "smtp_pass" {
+  description = "Пароль для внешних приложений ящика rangauto@mail.ru (секрет SMTP_PASS)"
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = length(var.smtp_pass) > 0
+    error_message = "Не задан секрет SMTP_PASS: без него заявки на почту не уходят."
+  }
+}

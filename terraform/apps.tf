@@ -19,12 +19,13 @@ locals {
     TELEGRAM_BOT_TOKEN = var.telegram_bot_token
     TELEGRAM_CHAT_IDS  = var.telegram_chat_ids
     TELEGRAM_PROXY     = var.telegram_proxy
-    SMTP_HOST          = "smtp.timeweb.ru"
-    SMTP_PORT          = "465"
-    SMTP_USER          = local.smtp_user
-    SMTP_PASS          = random_password.smtp.result
-    SMTP_FROM          = local.smtp_user
-    LEAD_EMAIL_TO      = local.lead_email_to
+    # заявки уходят с rangauto@mail.ru через SMTP mail.ru (пароль для внешних приложений — секрет SMTP_PASS)
+    SMTP_HOST     = "smtp.mail.ru"
+    SMTP_PORT     = "465"
+    SMTP_USER     = "rangauto@mail.ru"
+    SMTP_PASS     = var.smtp_pass
+    SMTP_FROM     = "rangauto@mail.ru"
+    LEAD_EMAIL_TO = local.lead_email_to
     # тестовый доступ к каталогу новых авто: https://rangauto.ru/new?preview=<ключ> (src/proxy.ts в cars)
     NEW_CARS_PREVIEW_KEY = "42a929dd10b0a624"
     # Список Telegram-групп бота хранится в S3 (бакет состояния Terraform, папка app/)
