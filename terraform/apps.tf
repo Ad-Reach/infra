@@ -163,8 +163,6 @@ resource "restapi_object" "rangauto_test" {
   lifecycle {
     ignore_changes = [data]
   }
-
-  depends_on = [restapi_object.mail_noreply]
 }
 
 # centro-plus.ru — статический сайт в Москве (python3 build.py → dist/). Python в сборочном

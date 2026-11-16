@@ -38,12 +38,12 @@ locals {
     LEAD_CHAT_IDS      = var.bot_lead_chat_ids
     # HTTPS-адрес приложения: на нём Mini App (кнопка меню бота)
     PUBLIC_URL = var.bot_public_url
-    # почта — тот же ящик no-reply@rangauto.ru, что у сайта (mail.tf)
-    SMTP_HOST     = "smtp.timeweb.ru"
+    # почта — тот же ящик rangauto@mail.ru, что у сайта (SMTP mail.ru)
+    SMTP_HOST     = "smtp.mail.ru"
     SMTP_PORT     = "465"
-    SMTP_USER     = local.smtp_user
-    SMTP_PASS     = random_password.smtp.result
-    SMTP_FROM     = local.smtp_user
+    SMTP_USER     = "rangauto@mail.ru"
+    SMTP_PASS     = var.smtp_pass
+    SMTP_FROM     = "rangauto@mail.ru"
     LEAD_EMAIL_TO = local.lead_email_to
   } : k => v if v != "" }
 }
@@ -98,8 +98,6 @@ resource "restapi_object" "bot" {
       error_message = "Не задан секрет BOT_TELEGRAM_TOKEN (Settings → Secrets → Actions)."
     }
   }
-
-  depends_on = [restapi_object.mail_noreply]
 }
 
 data "http" "bot_deploys" {
