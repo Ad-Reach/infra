@@ -38,13 +38,9 @@ locals {
     LEAD_CHAT_IDS      = var.bot_lead_chat_ids
     # HTTPS-адрес приложения: на нём Mini App (кнопка меню бота)
     PUBLIC_URL = var.bot_public_url
-    # почта — тот же ящик rangauto@mail.ru, что у сайта (SMTP mail.ru)
-    SMTP_HOST     = "smtp.mail.ru"
-    SMTP_PORT     = "465"
-    SMTP_USER     = "rangauto@mail.ru"
-    SMTP_PASS     = var.smtp_pass
-    SMTP_FROM     = "rangauto@mail.ru"
-    LEAD_EMAIL_TO = local.lead_email_to
+    # Заявки уходят через сайт (rangauto.ru/api/lead): он шлёт их в Telegram-группы и на почту.
+    # Напрямую из Амстердама почта не работает: подключение к smtp.mail.ru обрывается по таймауту.
+    LEAD_API_URL = "https://rangauto.ru/api/lead"
   } : k => v if v != "" }
 }
 
