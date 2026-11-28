@@ -26,6 +26,9 @@ locals {
     SMTP_PASS     = var.smtp_pass
     SMTP_FROM     = "rangauto@mail.ru"
     LEAD_EMAIL_TO = local.lead_email_to
+    # заявки с форм сайта → amoCRM rangauto123 (src/lib/leadCrm.ts в cars); пустой токен — отправка выключена
+    AMOCRM_BASE_URL = "https://rangauto123.amocrm.ru"
+    AMOCRM_TOKEN    = var.amocrm_token
     # тестовый доступ к каталогу новых авто: https://rangauto.ru/new?preview=<ключ> (src/proxy.ts в cars)
     NEW_CARS_PREVIEW_KEY = "42a929dd10b0a624"
     # Список Telegram-групп бота хранится в S3 (бакет состояния Terraform, папка app/)
