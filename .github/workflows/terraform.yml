@@ -27,6 +27,7 @@ env:
   TF_VAR_telegram_chat_ids: ${{ secrets.TELEGRAM_CHAT_IDS }}
   TF_VAR_telegram_proxy: ${{ secrets.TELEGRAM_PROXY }}
   TF_VAR_smtp_pass: ${{ secrets.SMTP_PASS }}
+  TF_VAR_amocrm_token: ${{ secrets.AMOCRM_TOKEN }}
   TF_VAR_lead_email_to: ${{ vars.LEAD_EMAIL_TO }}
   TF_VAR_s3_access_key: ${{ secrets.TF_STATE_ACCESS_KEY }}
   TF_VAR_s3_secret_key: ${{ secrets.TF_STATE_SECRET_KEY }}

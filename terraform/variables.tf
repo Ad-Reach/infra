@@ -31,6 +31,13 @@ variable "telegram_chat_ids" {
   default     = ""
 }
 
+variable "amocrm_token" {
+  description = "Долгосрочный токен интеграции amoCRM rangauto123 (секрет AMOCRM_TOKEN). Пусто — заявки в amoCRM не уходят"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "lead_email_to" {
   description = "Куда дублировать заявки (через запятую). Пусто — email из src/data/site.ts"
   type        = string
